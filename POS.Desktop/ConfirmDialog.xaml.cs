@@ -21,6 +21,11 @@ public partial class ConfirmDialog : FluentWindow
 static class DialogHelper
 {
     public static void SetOwner(Window dialog){var owner=Application.Current?.MainWindow;if(owner!=null&&owner!=dialog&&owner.IsLoaded)dialog.Owner=owner;}
-    /// <summary>Activa el diálogo y ajusta su alto al contenido; SizeToContent no es confiable con la barra de título extendida.</summary>
-    public static void FitHeight(Window window,FrameworkElement root){window.Activate();root.Measure(new Size(window.Width,double.PositiveInfinity));var h=Math.Ceiling(root.DesiredSize.Height);window.Top+=(window.Height-h)/2;window.Height=h;}
+    /// <summary>Activa el diálogo y ajusta su alto al contenido, también cuando cambia (por ejemplo al mostrar errores); SizeToContent no es confiable con la barra de título extendida.</summary>
+    public static void FitHeight(Window window,FrameworkElement root)
+    {
+        window.Activate();root.VerticalAlignment=VerticalAlignment.Top;
+        root.Measure(new Size(window.Width,double.PositiveInfinity));var h=Math.Ceiling(root.DesiredSize.Height);window.Top+=(window.Height-h)/2;window.Height=h;
+        root.SizeChanged+=(_,e)=>{if(e.HeightChanged)window.Height=Math.Ceiling(e.NewSize.Height);};
+    }
 }

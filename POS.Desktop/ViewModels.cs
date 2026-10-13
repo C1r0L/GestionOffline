@@ -37,6 +37,9 @@ public static class Display
     public static decimal Parse(string value)=>decimal.Parse(value,NumberStyles.AllowLeadingSign|NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingWhite|NumberStyles.AllowTrailingWhite,Culture);
     public static string Date(string value)=>DateTime.Parse(value,CultureInfo.InvariantCulture,DateTimeStyles.RoundtripKind).ToLocalTime().ToString("dd/MM/yyyy HH:mm",Culture);
     public static string Mode(StockMode mode)=>mode switch{StockMode.EXACT=>"Exacto",StockMode.WEIGHT=>"Por peso",_=>"Manual"};
+    public static string UnitTitle(SaleUnit unit)=>unit switch{SaleUnit.KG=>"Kilo",SaleUnit.PACK=>"Pack",_=>"Unidad"};
+    /// <summary>Ganancia sobre el costo, redondeada al entero: (precio − costo) / costo.</summary>
+    public static string Margin(long price,long? cost)=>cost is long c&&c>0?decimal.Round((price-c)*100m/c,0,MidpointRounding.AwayFromZero).ToString(Culture)+" %":"—";
     /// <summary>Importe sin decimales cuando es un valor entero de pesos: "$ 4.500".</summary>
     public static string MoneyShort(long value)=>(value/100m).ToString(value%100==0?"C0":"C2",Culture);
     /// <summary>Cantidad compacta para tarjetas y carrito: "2 u.", "3 packs", "0,5 kg".</summary>
@@ -47,6 +50,10 @@ public static class Display
 public sealed record ProductView(Product Product)
 {
     public string Name=>Product.Name;public string Price=>Display.Money(Product.PriceMinor);public string UnitLabel=>Display.Unit(Product.Unit);public string ModeLabel=>Display.Mode(Product.Mode);
+    public string Code=>string.IsNullOrWhiteSpace(Product.Code)?"Sin código":Product.Code;public string Category=>Product.Category.Length==0?"Sin categoría":Product.Category;
+    public string SellLabel=>Display.UnitTitle(Product.Unit)+" · "+Product.Mode switch{StockMode.EXACT=>"stock exacto",StockMode.WEIGHT=>"por peso",_=>"manual"};
+    public string Margin=>Display.Margin(Product.PriceMinor,Product.CostMinor);
+    public string StateLabel=>Product.Active?"Activo":"Inactivo";public string ToggleLabel=>Product.Active?"Desactivar":"Activar";
 }
 public sealed record CartView(Product Product,long QuantityBase)
 {
@@ -68,7 +75,8 @@ public sealed record InventoryView(InventoryRow Row,SaleUnit Unit)
     public string Quantity=>Row.QuantityBase is long q?Display.Quantity(q,Unit):"Control manual";
     public string Status=>Row.Mode==StockMode.MANUAL?Row.Status.ToString():Row.QuantityBase==0?"REPONER":Row.MinimumBase is long min&&Row.QuantityBase<=min?"BAJO":"SUFICIENTE";
 }
-public sealed record PreviewView(PricePreview Row){public string Name=>Row.Name;public string OldPrice=>Display.Money(Row.OldPriceMinor);public string NewPrice=>Display.Money(Row.NewPriceMinor);}
+public sealed record PreviewView(PricePreview Row){public string Name=>Row.Name;public string OldPrice=>Display.MoneyShort(Row.OldPriceMinor);public string NewPrice=>Display.MoneyShort(Row.NewPriceMinor);}
+public sealed record RoundingOption(long Minor,string Label);
 public sealed record SaleView(SaleSummary Sale)
 {
     public string Date=>Display.Date(Sale.CreatedAt);public string Status=>Sale.Status=="COMPLETED"?"Completada":"Anulada";public string Payment=>Display.Payment(Enum.Parse<PaymentMethod>(Sale.PaymentMethod));public string Total=>Display.Money(Sale.TotalMinor);
@@ -87,7 +95,7 @@ public sealed class MainViewModel : Observable
     public MainViewModel(IPosService service)
     {
         this.service=service;
-        Payment=Payments[0];
+        Payment=Payments[0];priceRounding=Roundings[0];
         AddProductCommand=ParamCommand(p=>{if(p is SaleTile t)AddToCart(t.Product);});QuickAddCommand=Command(QuickAdd);
         IncrementCommand=ParamCommand(p=>ChangeLine(p as CartView,+1));DecrementCommand=ParamCommand(p=>ChangeLine(p as CartView,-1));
         EditLineCommand=ParamCommand(p=>{if(p is CartView line&&QuantityDialog.Ask(line.Product,line.QuantityBase) is long q)ReplaceLine(line,q);});
@@ -96,11 +104,12 @@ public sealed class MainViewModel : Observable
         PickCategoryCommand=ParamCommand(p=>{if(p is string c)SaleCategory=c;});PickPaymentCommand=ParamCommand(p=>{if(p is PaymentOption o)Payment=o;});
         CheckoutCommand=Command(()=>{if(Section==0)Checkout();});
         NavigateCommand=new ParameterCommand(p=>{if(int.TryParse(p as string,out var s))Section=s;});
-        NewProductCommand=Command(()=>EditProduct(null));EditProductCommand=Command(()=>EditProduct(RequireProduct().Product));ToggleProductCommand=Command(()=>{var p=RequireProduct().Product;if(p.Active?ConfirmDialog.Ask("Desactivar producto",$"«{p.Name}» dejará de aparecer en la venta. Podés volver a activarlo cuando quieras.","Desactivar"):ConfirmDialog.Ask("Activar producto",$"«{p.Name}» volverá a estar disponible para la venta.","Activar")){service.SetActive(p.Id,!p.Active);Refresh();}});
+        NewProductCommand=Command(()=>EditProduct(null));EditProductCommand=ParamCommand(x=>EditProduct(((x as ProductView)??RequireProduct()).Product));
+        TogglePricePanelCommand=Command(()=>{ShowPricePanel=!ShowPricePanel;if(ShowPricePanel)UpdatePreview();});
+        ToggleProductCommand=ParamCommand(x=>{var p=((x as ProductView)??RequireProduct()).Product;if(p.Active?ConfirmDialog.Ask("Desactivar producto",$"«{p.Name}» dejará de aparecer en la venta. Podés volver a activarlo cuando quieras.","Desactivar"):ConfirmDialog.Ask("Activar producto",$"«{p.Name}» volverá a estar disponible para la venta.","Activar")){service.SetActive(p.Id,!p.Active);Refresh();Message=p.Active?$"«{p.Name}» desactivado. Activá «Mostrar inactivos» para verlo.":$"«{p.Name}» activado.";}});
         MinimumStockCommand=Command(()=>{var row=RequireInventory();var n=Display.Parse(MinimumQuantity);service.SetMinimumStock(row.Row.ProductId,n==0?0:Pricing.Quantity(n,row.Unit));Refresh();Message="Mínimo de reposición actualizado.";});
         RestockCommand=Command(()=>Stock(false));AdjustStockCommand=Command(()=>Stock(true));ManualStatusCommand=Command(()=>{service.SetManualStatus(RequireInventory().Row.ProductId,ManualStatus);Refresh();});MovementsCommand=Command(LoadMovements);
-        PreviewCommand=Command(()=>{Preview=new(service.PreviewPrices(PriceCategory,Display.Parse(PriceAmount),IsPercentage,Pricing.Money(Display.Parse(PriceRounding))).Select(x=>new PreviewView(x)));Changed(nameof(Preview));Changed(nameof(PreviewCount));});
-        ApplyPricesCommand=Command(()=>{if(Preview.Count==0)throw new ArgumentException("Generá una vista previa primero.");if(ConfirmDialog.Ask("Aplicar nuevos precios",$"Se actualizará el precio de {Preview.Count} productos según la vista previa.","Aplicar precios")){service.ApplyPrices(Preview.Select(x=>x.Row).ToList());Preview.Clear();Refresh();Changed(nameof(PreviewCount));Message="Precios actualizados. El carrito se recalculará antes de cobrar.";}});
+        ApplyPricesCommand=Command(()=>{if(Preview.Count==0)throw new ArgumentException(PreviewError.Length>0?PreviewError:"Con estos valores ningún precio cambia.");if(ConfirmDialog.Ask("Aplicar nuevos precios",$"Se actualizará el precio de {Preview.Count} productos según la vista previa.","Aplicar precios")){try{service.ApplyPrices(Preview.Select(x=>x.Row).ToList());ShowPricePanel=false;}finally{Refresh();UpdatePreview();}Message=$"Precios actualizados. El carrito se recalculará antes de cobrar.";}});
         HistoryCommand=Command(LoadHistory);SaleDetailsCommand=Command(LoadDetails);CancelSaleCommand=Command(()=>{var s=RequireSale();if(ConfirmDialog.Ask($"Anular la venta n.º {s.Sale.Id}",$"La venta de {s.Total} quedará registrada como anulada y sus productos volverán al inventario. No se puede deshacer.","Anular venta",danger:true)){service.CancelSale(s.Sale.Id,CancellationReason);Refresh();LoadHistory();}});
         BackupCommand=Command(()=>{var dialog=new SaveFileDialog{Filter="Respaldo SQLite (*.db)|*.db",FileName=$"MiPOS-{DateTime.Now:yyyyMMdd-HHmmss}.db",OverwritePrompt=true};if(dialog.ShowDialog()==true){service.Backup(dialog.FileName);Message="Respaldo exportado y verificado. Conservá una copia en una unidad externa.";}});
         RestoreCommand=Command(()=>{var dialog=new OpenFileDialog{Filter="Respaldo SQLite (*.db)|*.db"};if(dialog.ShowDialog()==true&&ConfirmDialog.Ask("Restaurar respaldo","Los datos actuales se reemplazarán por los del respaldo. Se conservará una copia previa y el carrito se vaciará.","Restaurar",danger:true)){service.Restore(dialog.FileName);Cart.Clear();CartChanged();Refresh();LoadHistory();Message="Respaldo restaurado. Se conservó una copia de los datos anteriores.";}});
@@ -133,10 +142,17 @@ public sealed class MainViewModel : Observable
         Changed(nameof(BackupStatus));Changed(nameof(BackupSymbol));Changed(nameof(BackupBrush));
     }
     public string Search{get=>search;set{search=value;Changed();RefreshProducts();}}
+    public const string AllProductCategories="Todas";
+    string productCategory=AllProductCategories;
+    public string ProductCategory{get=>productCategory;set{productCategory=value??AllProductCategories;Changed();RefreshProducts();}}
+    public IReadOnlyList<string> ProductCategories{get;private set;}=[AllProductCategories];
+    public string ProductCountLabel{get;private set;}="";
     public bool IncludeInactive{get=>includeInactive;set{includeInactive=value;Changed();RefreshProducts();}}
     public ObservableCollection<ProductView> Products{get;private set;}=[];
     public ProductView? SelectedProduct{get;set;}
     public const string AllCategories="Todos";
+    /// <summary>Categorías existentes, para sugerir en el diálogo de producto.</summary>
+    public IReadOnlyList<string> AllCategoryNames{get;private set;}=[];
     public string TodayLabel=>Display.Today;
     public string SaleSearch{get=>saleSearch;set{saleSearch=value;Changed();RefreshSaleProducts();}}
     public string SaleCategory{get=>saleCategory;set{saleCategory=value;Changed();RefreshSaleProducts();}}
@@ -157,19 +173,49 @@ public sealed class MainViewModel : Observable
     public string MinimumQuantity{get;set;}="0";public string StockQuantity{get;set;}="1";public string StockNote{get;set;}="";
     public IReadOnlyList<ReplenishmentStatus> Statuses{get;}=Enum.GetValues<ReplenishmentStatus>();public ReplenishmentStatus ManualStatus{get;set;}
     public ObservableCollection<MovementView> Movements{get;private set;}=[];
-    public string PriceCategory{get;set;}="";public string PriceAmount{get;set;}="10";public bool IsPercentage{get;set;}=true;public string PriceRounding{get;set;}="0,01";
-    public ObservableCollection<PreviewView> Preview{get;private set;}=[];public string PreviewCount=>$"{Preview.Count} productos en la vista previa";
+    bool showPricePanel,isPercentage=true;string priceCategory=AllProductCategories,priceAmount="10",previewError="";RoundingOption priceRounding=null!;
+    public bool ShowPricePanel{get=>showPricePanel;set{showPricePanel=value;Changed();Changed(nameof(PricePanelVisibility));}}
+    public Visibility PricePanelVisibility=>ShowPricePanel?Visibility.Visible:Visibility.Collapsed;
+    public string PriceCategory{get=>priceCategory;set{priceCategory=value??AllProductCategories;Changed();UpdatePreview();}}
+    public string PriceAmount{get=>priceAmount;set{priceAmount=value;Changed();UpdatePreview();}}
+    public bool IsPercentage{get=>isPercentage;set{isPercentage=value;Changed();Changed(nameof(IsFixedAmount));Changed(nameof(AmountSuffix));UpdatePreview();}}
+    public bool IsFixedAmount{get=>!isPercentage;set=>IsPercentage=!value;}
+    public string AmountSuffix=>IsPercentage?"%":"$";
+    public IReadOnlyList<RoundingOption> Roundings{get;}=[new(1,"$ 0,01"),new(100,"$ 1"),new(1000,"$ 10"),new(5000,"$ 50"),new(10000,"$ 100")];
+    public RoundingOption PriceRounding{get=>priceRounding;set{priceRounding=value;Changed();UpdatePreview();}}
+    public ObservableCollection<PreviewView> Preview{get;private set;}=[];
+    public string PreviewCount=>Preview.Count==1?"Vista previa · 1 producto":$"Vista previa · {Preview.Count} productos";
+    public string ApplyLabel=>Preview.Count==1?"Aplicar a 1 producto":$"Aplicar a {Preview.Count} productos";
+    public string PreviewError{get=>previewError;private set{previewError=value;Changed();Changed(nameof(PreviewErrorVisibility));}}
+    public Visibility PreviewErrorVisibility=>PreviewError.Length>0?Visibility.Visible:Visibility.Collapsed;
+    /// <summary>Recalcula la vista previa del ajuste masivo cada vez que cambia un valor; los errores se muestran en el panel.</summary>
+    void UpdatePreview()
+    {
+        if(!ShowPricePanel||priceRounding==null)return;
+        try{Preview=new(service.PreviewPrices(PriceCategory==AllProductCategories?"":PriceCategory,Display.Parse(PriceAmount),IsPercentage,PriceRounding.Minor).Where(x=>x.NewPriceMinor!=x.OldPriceMinor).Select(x=>new PreviewView(x)));PreviewError="";}
+        catch(Exception e) when(e is ArgumentException or FormatException or OverflowException){Preview=[];PreviewError=e is ArgumentException?e.Message:"Ingresá un número válido. Usá coma para los decimales.";}
+        Changed(nameof(Preview));Changed(nameof(PreviewCount));Changed(nameof(ApplyLabel));
+    }
     public DateTime? From{get;set;}=DateTime.Today;public DateTime? To{get;set;}=DateTime.Today;
     public ObservableCollection<SaleView> Sales{get;private set;}=[];public SaleView? SelectedSale{get;set;}
     public ObservableCollection<DetailView> SaleDetails{get;private set;}=[];public string CancellationReason{get;set;}="";
     public ICommand AddProductCommand{get;}public ICommand QuickAddCommand{get;}public ICommand IncrementCommand{get;}public ICommand DecrementCommand{get;}public ICommand EditLineCommand{get;}public ICommand RemoveLineCommand{get;}
     public ICommand ClearCartCommand{get;}public ICommand PickCategoryCommand{get;}public ICommand PickPaymentCommand{get;}public ICommand CheckoutCommand{get;}
-    public ICommand NewProductCommand{get;}public ICommand EditProductCommand{get;}public ICommand ToggleProductCommand{get;}
+    public ICommand TogglePricePanelCommand{get;}public ICommand NewProductCommand{get;}public ICommand EditProductCommand{get;}public ICommand ToggleProductCommand{get;}
     public ICommand MinimumStockCommand{get;}public ICommand RestockCommand{get;}public ICommand AdjustStockCommand{get;}public ICommand ManualStatusCommand{get;}public ICommand MovementsCommand{get;}
-    public ICommand PreviewCommand{get;}public ICommand ApplyPricesCommand{get;}public ICommand HistoryCommand{get;}public ICommand SaleDetailsCommand{get;}public ICommand CancelSaleCommand{get;}public ICommand BackupCommand{get;}public ICommand RestoreCommand{get;}
-    void RefreshProducts(){Products=new(service.Products(Search,IncludeInactive).Select(x=>new ProductView(x)));Changed(nameof(Products));}
+    public ICommand ApplyPricesCommand{get;}public ICommand HistoryCommand{get;}public ICommand SaleDetailsCommand{get;}public ICommand CancelSaleCommand{get;}public ICommand BackupCommand{get;}public ICommand RestoreCommand{get;}
+    void RefreshProducts()
+    {
+        Products=new(service.Products(Search,IncludeInactive).Where(x=>ProductCategory==AllProductCategories||x.Category==ProductCategory).Select(x=>new ProductView(x)));Changed(nameof(Products));
+        var all=service.Products(includeInactive:true);var inactive=all.Count(x=>!x.Active);
+        ProductCountLabel=$"{all.Count-inactive} activos · {inactive} inactivos";Changed(nameof(ProductCountLabel));
+    }
     void Refresh(){RefreshProducts();var products=service.Products(includeInactive:true).ToDictionary(x=>x.Id);Inventory=new(service.Inventory().Select(x=>new InventoryView(x,products[x.ProductId].Unit)));Changed(nameof(Inventory));AlertCount=Inventory.Count(x=>x.Status!="SUFICIENTE");Changed(nameof(AlertCount));Changed(nameof(AlertVisibility));
+        var names=products.Values.Where(x=>x.Category.Length>0).Select(x=>x.Category).Distinct().Order(StringComparer.Create(Display.Culture,true)).ToList();
         Categories=[AllCategories,..products.Values.Where(x=>x.Active&&x.Category.Length>0).Select(x=>x.Category).Distinct().Order(StringComparer.Create(Display.Culture,true))];Changed(nameof(Categories));
+        ProductCategories=[AllProductCategories,..names];Changed(nameof(ProductCategories));AllCategoryNames=names;
+        if(!ProductCategories.Contains(productCategory)){productCategory=AllProductCategories;Changed(nameof(ProductCategory));RefreshProducts();}
+        if(!ProductCategories.Contains(priceCategory)){priceCategory=AllProductCategories;Changed(nameof(PriceCategory));}
         if(!Categories.Contains(saleCategory)){saleCategory=AllCategories;Changed(nameof(SaleCategory));}
         RefreshSaleProducts();}
     void RefreshSaleProducts()
@@ -217,7 +263,7 @@ public sealed class MainViewModel : Observable
         Message=result.Change is long change&&change>0?$"Venta n.º {id} registrada. Vuelto: {Display.Money(change)}.":$"Venta n.º {id} registrada.";
         FocusSearchRequested?.Invoke();
     }
-    void EditProduct(Product? product){var dialog=new ProductWindow(product){Owner=Application.Current.MainWindow};if(dialog.ShowDialog()==true){service.SaveProduct(dialog.Result!);Refresh();Message="Producto guardado.";}}
+    void EditProduct(Product? product){var dialog=new ProductWindow(product,AllCategoryNames,service.SaveProduct);DialogHelper.SetOwner(dialog);if(dialog.ShowDialog()==true){Refresh();UpdatePreview();Message=product==null?$"Producto «{dialog.Result!.Name.Trim()}» creado.":"Producto guardado.";}}
     void Stock(bool absolute)
     {
         var row=RequireInventory();var value=Display.Parse(StockQuantity);long q;

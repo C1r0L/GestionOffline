@@ -214,6 +214,84 @@
 </ControlTemplate.Triggers>
 </ControlTemplate></Setter.Value></Setter>
 </Style>
+<!-- Error de validación debajo de un campo; se oculta cuando no hay texto -->
+<Style x:Key="FieldError" TargetType="TextBlock">
+<Setter Property="Foreground" Value="{StaticResource DangerInkBrush}"/>
+<Setter Property="FontSize" Value="12.5"/>
+<Setter Property="FontWeight" Value="SemiBold"/>
+<Setter Property="TextWrapping" Value="Wrap"/>
+<Setter Property="Margin" Value="0,4,0,0"/>
+<Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers>
+</Style>
+
+<!-- Opciones en tarjetas (unidad de venta, control de stock): ítems con Title, Detail y Enabled -->
+<Style x:Key="OptionList" TargetType="ListBox">
+<Setter Property="Background" Value="Transparent"/>
+<Setter Property="BorderThickness" Value="0"/>
+<Setter Property="Padding" Value="0"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBox"><ItemsPresenter/></ControlTemplate></Setter.Value></Setter>
+<Setter Property="ItemsPanel"><Setter.Value><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></Setter.Value></Setter>
+<Setter Property="ItemTemplate"><Setter.Value><DataTemplate>
+<StackPanel><TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/><TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{StaticResource MutedBrush}"/></StackPanel>
+</DataTemplate></Setter.Value></Setter>
+</Style>
+<Style x:Key="OptionCard" TargetType="ListBoxItem">
+<Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+<Setter Property="Margin" Value="0,0,8,0"/>
+<Setter Property="Cursor" Value="Hand"/>
+<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+<Setter Property="IsEnabled" Value="{Binding Enabled}"/>
+<Setter Property="AutomationProperties.Name" Value="{Binding Title}"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+<Border x:Name="Bd" MinHeight="62" Padding="12,8" CornerRadius="10" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+<ContentPresenter VerticalAlignment="Center"/>
+</Border>
+<ControlTemplate.Triggers>
+<Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/></Trigger>
+<Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource InkBrush}"/></Trigger>
+<Trigger Property="IsSelected" Value="True">
+<Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySoftBrush}"/>
+<Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+<Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+<Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+</Trigger>
+<MultiTrigger><MultiTrigger.Conditions><Condition Property="IsEnabled" Value="False"/><Condition Property="IsSelected" Value="False"/></MultiTrigger.Conditions><Setter TargetName="Bd" Property="Opacity" Value="0.45"/><Setter Property="Cursor" Value="Arrow"/></MultiTrigger>
+</ControlTemplate.Triggers>
+</ControlTemplate></Setter.Value></Setter>
+</Style>
+
+<!-- Etiqueta neutra (categoría) y de estado activo/inactivo; Tag = Activo | Inactivo -->
+<Style x:Key="TagPill" TargetType="Border">
+<Setter Property="CornerRadius" Value="11"/>
+<Setter Property="Padding" Value="10,2"/>
+<Setter Property="HorizontalAlignment" Value="Left"/>
+<Setter Property="Background" Value="#EEF3F5"/>
+<Setter Property="TextElement.FontSize" Value="12"/>
+<Setter Property="TextElement.Foreground" Value="{StaticResource InkBrush}"/>
+</Style>
+<Style x:Key="StatePill" TargetType="Border" BasedOn="{StaticResource TagPill}">
+<Setter Property="Background" Value="{StaticResource SuccessSoftBrush}"/>
+<Setter Property="TextElement.Foreground" Value="{StaticResource SuccessInkBrush}"/>
+<Setter Property="TextElement.FontWeight" Value="SemiBold"/>
+<Style.Triggers><Trigger Property="Tag" Value="Inactivo"><Setter Property="Background" Value="#EEF3F5"/><Setter Property="TextElement.Foreground" Value="{StaticResource MutedBrush}"/></Trigger></Style.Triggers>
+</Style>
+<!-- Selector segmentado (RadioButton) -->
+<Style x:Key="Segment" TargetType="RadioButton">
+<Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+<Setter Property="MinHeight" Value="42"/>
+<Setter Property="Cursor" Value="Hand"/>
+<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+<Border x:Name="Bd" CornerRadius="8" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" MinHeight="{TemplateBinding MinHeight}">
+<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+</Border>
+<ControlTemplate.Triggers>
+<Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/></Trigger>
+<Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource InkBrush}"/></Trigger>
+<Trigger Property="IsChecked" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimarySoftBrush}"/><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/><Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/><Setter Property="FontWeight" Value="Bold"/></Trigger>
+</ControlTemplate.Triggers>
+</ControlTemplate></Setter.Value></Setter>
+</Style>
 <Style x:Key="ShortcutHint" TargetType="TextBlock">
 <Setter Property="FontSize" Value="12"/>
 <Setter Property="FontWeight" Value="Normal"/>
