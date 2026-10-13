@@ -1,9 +1,9 @@
 <ui:FluentWindow x:Class="POS.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:local="clr-namespace:POS.Desktop" xmlns:views="clr-namespace:POS.Desktop.Views"
     Title="MiPOS — Gestión offline" Width="1280" Height="820" MinWidth="1040" MinHeight="680"
-    ExtendsContentIntoTitleBar="True" WindowBackdropType="None" WindowCornerPreference="Round" WindowStartupLocation="CenterScreen" Background="{StaticResource GroundBrush}">
+    ExtendsContentIntoTitleBar="True" WindowBackdropType="None" WindowCornerPreference="Round" WindowStartupLocation="CenterScreen" Background="{StaticResource GroundBrush}" PreviewKeyDown="WindowKeyDown">
 <Window.Resources><local:SectionVisibilityConverter x:Key="SectionVisibility"/></Window.Resources>
 <Window.InputBindings>
-<KeyBinding Key="F1" Command="{Binding NavigateCommand}" CommandParameter="0"/>
+<KeyBinding Key="F12" Command="{Binding CheckoutCommand}"/>
 <KeyBinding Key="F3" Command="{Binding NavigateCommand}" CommandParameter="1"/>
 <KeyBinding Key="F4" Command="{Binding NavigateCommand}" CommandParameter="2"/>
 <KeyBinding Key="F5" Command="{Binding NavigateCommand}" CommandParameter="3"/>

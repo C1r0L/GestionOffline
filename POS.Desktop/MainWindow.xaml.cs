@@ -21,6 +21,12 @@ public partial class MainWindow : FluentWindow
         }
         catch(Exception){System.Windows.MessageBox.Show("No se pudo abrir la base de datos. Conservá tus archivos y contactá al soporte.","MiPOS",System.Windows.MessageBoxButton.OK,System.Windows.MessageBoxImage.Error);Close();}
     }
+    /// <summary>F1 abre Nueva venta y F2 lleva el foco a la búsqueda de productos.</summary>
+    void WindowKeyDown(object sender,System.Windows.Input.KeyEventArgs e)
+    {
+        if(e.Key is not (System.Windows.Input.Key.F1 or System.Windows.Input.Key.F2)||DataContext is not MainViewModel vm)return;
+        vm.Section=0;Dispatcher.BeginInvoke(SalePageView.FocusSearch,System.Windows.Threading.DispatcherPriority.Input);e.Handled=true;
+    }
     void BackupMenuClick(object sender,RoutedEventArgs e)
     {
         var menu=BackupMenuButton.ContextMenu;menu.DataContext=DataContext;menu.PlacementTarget=BackupMenuButton;menu.Placement=System.Windows.Controls.Primitives.PlacementMode.Top;menu.IsOpen=true;
