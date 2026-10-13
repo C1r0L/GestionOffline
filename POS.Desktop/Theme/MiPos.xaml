@@ -292,6 +292,29 @@
 </ControlTemplate.Triggers>
 </ControlTemplate></Setter.Value></Setter>
 </Style>
+<!-- Tarjeta de resumen (cifra destacada); como botón filtra al tocarla -->
+<Style x:Key="SummaryCard" TargetType="Button">
+<Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+<Setter Property="Cursor" Value="Hand"/>
+<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+<Setter Property="HorizontalContentAlignment" Value="Left"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+<Border x:Name="Bd" CornerRadius="12" Padding="16,12" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+</Border>
+<ControlTemplate.Triggers>
+<Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/></Trigger>
+<Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource InkBrush}"/><Setter TargetName="Bd" Property="BorderThickness" Value="2"/></Trigger>
+</ControlTemplate.Triggers>
+</ControlTemplate></Setter.Value></Setter>
+</Style>
+<Style x:Key="StatCard" TargetType="Border">
+<Setter Property="CornerRadius" Value="12"/>
+<Setter Property="Padding" Value="16,12"/>
+<Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+<Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+<Setter Property="BorderThickness" Value="1"/>
+</Style>
 <Style x:Key="ShortcutHint" TargetType="TextBlock">
 <Setter Property="FontSize" Value="12"/>
 <Setter Property="FontWeight" Value="Normal"/>
