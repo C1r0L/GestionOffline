@@ -4,8 +4,11 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.Win32;
 using POS.Core;
+using InfoBarSeverity=Wpf.Ui.Controls.InfoBarSeverity;
+using SymbolRegular=Wpf.Ui.Controls.SymbolRegular;
 
 namespace POS.Desktop;
 public abstract class Observable : INotifyPropertyChanged
@@ -19,6 +22,12 @@ public sealed class ActionCommand(Action action) : ICommand
     public bool CanExecute(object? parameter)=>true;
     public void Execute(object? parameter)=>action();
 }
+public sealed class ParameterCommand(Action<object?> action) : ICommand
+{
+    public event EventHandler? CanExecuteChanged {add{} remove{}}
+    public bool CanExecute(object? parameter)=>true;
+    public void Execute(object? parameter)=>action(parameter);
+}
 public static class Display
 {
     public static readonly CultureInfo Culture=CultureInfo.GetCultureInfo("es-AR");
@@ -26,7 +35,7 @@ public static class Display
     public static string Unit(SaleUnit unit)=>unit switch{SaleUnit.KG=>"kg",SaleUnit.PACK=>"pack",_=>"unidad"};
     public static string Quantity(long value,SaleUnit unit)=>(value/(unit==SaleUnit.KG?1000m:1m)).ToString("0.###",Culture)+" "+Unit(unit);
     public static decimal Parse(string value)=>decimal.Parse(value,NumberStyles.AllowLeadingSign|NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingWhite|NumberStyles.AllowTrailingWhite,Culture);
-    public static string Date(string value)=>DateTime.Parse(value,CultureInfo.InvariantCulture,DateTimeStyles.RoundtripKind).ToLocalTime().ToString("g",Culture);
+    public static string Date(string value)=>DateTime.Parse(value,CultureInfo.InvariantCulture,DateTimeStyles.RoundtripKind).ToLocalTime().ToString("dd/MM/yyyy HH:mm",Culture);
     public static string Mode(StockMode mode)=>mode switch{StockMode.EXACT=>"Exacto",StockMode.WEIGHT=>"Por peso",_=>"Manual"};
     public static string Payment(PaymentMethod method)=>method switch{PaymentMethod.CASH=>"Efectivo",PaymentMethod.TRANSFER=>"Transferencia",PaymentMethod.CARD=>"Tarjeta",_=>"Otro"};
 }
@@ -58,27 +67,46 @@ public sealed record PaymentOption(PaymentMethod Value,string Label);
 public sealed class MainViewModel : Observable
 {
     readonly IPosService service;
-    string search="",message="Todo listo. Buscá un producto para comenzar.";bool includeInactive;
+    string search="",message="";bool includeInactive,hasMessage;int section;InfoBarSeverity severity=InfoBarSeverity.Informational;
     public MainViewModel(IPosService service)
     {
         this.service=service;
         AddCartCommand=Command(AddCart);EditCartCommand=Command(EditCart);RemoveCartCommand=Command(()=>{if(SelectedCart!=null)Cart.Remove(SelectedCart);CartChanged();});CheckoutCommand=Command(Checkout);
-        NewProductCommand=Command(()=>EditProduct(null));EditProductCommand=Command(()=>EditProduct(RequireProduct().Product));ToggleProductCommand=Command(()=>{var p=RequireProduct().Product;if(Confirm(p.Active?"¿Desactivar este producto?":"¿Activar este producto?")){service.SetActive(p.Id,!p.Active);Refresh();}});
+        NavigateCommand=new ParameterCommand(p=>{if(int.TryParse(p as string,out var s))Section=s;});
+        NewProductCommand=Command(()=>EditProduct(null));EditProductCommand=Command(()=>EditProduct(RequireProduct().Product));ToggleProductCommand=Command(()=>{var p=RequireProduct().Product;if(p.Active?ConfirmDialog.Ask("Desactivar producto",$"«{p.Name}» dejará de aparecer en la venta. Podés volver a activarlo cuando quieras.","Desactivar"):ConfirmDialog.Ask("Activar producto",$"«{p.Name}» volverá a estar disponible para la venta.","Activar")){service.SetActive(p.Id,!p.Active);Refresh();}});
         MinimumStockCommand=Command(()=>{var row=RequireInventory();var n=Display.Parse(MinimumQuantity);service.SetMinimumStock(row.Row.ProductId,n==0?0:Pricing.Quantity(n,row.Unit));Refresh();Message="Mínimo de reposición actualizado.";});
         RestockCommand=Command(()=>Stock(false));AdjustStockCommand=Command(()=>Stock(true));ManualStatusCommand=Command(()=>{service.SetManualStatus(RequireInventory().Row.ProductId,ManualStatus);Refresh();});MovementsCommand=Command(LoadMovements);
         PreviewCommand=Command(()=>{Preview=new(service.PreviewPrices(PriceCategory,Display.Parse(PriceAmount),IsPercentage,Pricing.Money(Display.Parse(PriceRounding))).Select(x=>new PreviewView(x)));Changed(nameof(Preview));Changed(nameof(PreviewCount));});
-        ApplyPricesCommand=Command(()=>{if(Preview.Count==0)throw new ArgumentException("Generá una vista previa primero.");if(Confirm($"¿Aplicar los nuevos precios a {Preview.Count} productos?")){service.ApplyPrices(Preview.Select(x=>x.Row).ToList());Preview.Clear();Refresh();Changed(nameof(PreviewCount));Message="Precios actualizados. El carrito se recalculará antes de cobrar.";}});
-        HistoryCommand=Command(LoadHistory);SaleDetailsCommand=Command(LoadDetails);CancelSaleCommand=Command(()=>{var s=RequireSale();if(Confirm($"¿Anular la venta {s.Sale.Id} y devolver sus existencias?")){service.CancelSale(s.Sale.Id,CancellationReason);Refresh();LoadHistory();}});
+        ApplyPricesCommand=Command(()=>{if(Preview.Count==0)throw new ArgumentException("Generá una vista previa primero.");if(ConfirmDialog.Ask("Aplicar nuevos precios",$"Se actualizará el precio de {Preview.Count} productos según la vista previa.","Aplicar precios")){service.ApplyPrices(Preview.Select(x=>x.Row).ToList());Preview.Clear();Refresh();Changed(nameof(PreviewCount));Message="Precios actualizados. El carrito se recalculará antes de cobrar.";}});
+        HistoryCommand=Command(LoadHistory);SaleDetailsCommand=Command(LoadDetails);CancelSaleCommand=Command(()=>{var s=RequireSale();if(ConfirmDialog.Ask($"Anular la venta n.º {s.Sale.Id}",$"La venta de {s.Total} quedará registrada como anulada y sus productos volverán al inventario. No se puede deshacer.","Anular venta",danger:true)){service.CancelSale(s.Sale.Id,CancellationReason);Refresh();LoadHistory();}});
         BackupCommand=Command(()=>{var dialog=new SaveFileDialog{Filter="Respaldo SQLite (*.db)|*.db",FileName=$"MiPOS-{DateTime.Now:yyyyMMdd-HHmmss}.db",OverwritePrompt=true};if(dialog.ShowDialog()==true){service.Backup(dialog.FileName);Message="Respaldo exportado y verificado. Conservá una copia en una unidad externa.";}});
-        RestoreCommand=Command(()=>{var dialog=new OpenFileDialog{Filter="Respaldo SQLite (*.db)|*.db"};if(dialog.ShowDialog()==true&&Confirm("¿Restaurar este respaldo y reemplazar los datos actuales? Se conservará una copia previa. El carrito se vaciará.")){service.Restore(dialog.FileName);Cart.Clear();CartChanged();Refresh();LoadHistory();Message="Respaldo restaurado. Se conservó una copia de los datos anteriores.";}});
-        Refresh();LoadHistory();if(Products.Count==0)Message="Todavía no hay productos. Abrí Productos y elegí Nuevo producto.";
+        RestoreCommand=Command(()=>{var dialog=new OpenFileDialog{Filter="Respaldo SQLite (*.db)|*.db"};if(dialog.ShowDialog()==true&&ConfirmDialog.Ask("Restaurar respaldo","Los datos actuales se reemplazarán por los del respaldo. Se conservará una copia previa y el carrito se vaciará.","Restaurar",danger:true)){service.Restore(dialog.FileName);Cart.Clear();CartChanged();Refresh();LoadHistory();Message="Respaldo restaurado. Se conservó una copia de los datos anteriores.";}});
+        Refresh();LoadHistory();if(Products.Count==0)Notify("Todavía no hay productos. Abrí Productos y elegí Nuevo producto.",InfoBarSeverity.Informational);
     }
-    ICommand Command(Action action)=>new ActionCommand(()=>{try{action();}catch(ArgumentException e){Message=e.Message;}catch(OverflowException){Message="El importe o la cantidad es demasiado grande.";}catch(FormatException){Message="Revisá el número ingresado. Usá coma para los decimales.";}catch(Exception){Message="No se pudo completar la operación. Revisá los datos y el acceso al archivo; tus datos no se borraron.";}});
-    static bool Confirm(string text)=>MessageBox.Show(text,"Confirmación",MessageBoxButton.YesNo,MessageBoxImage.Question,MessageBoxResult.No)==MessageBoxResult.Yes;
+    ICommand Command(Action action)=>new ActionCommand(()=>{try{action();}catch(ArgumentException e){Fail(e.Message);}catch(OverflowException){Fail("El importe o la cantidad es demasiado grande.");}catch(FormatException){Fail("Revisá el número ingresado. Usá coma para los decimales.");}catch(Exception){Fail("No se pudo completar la operación. Revisá los datos y el acceso al archivo; tus datos no se borraron.");}});
     ProductView RequireProduct()=>SelectedProduct??throw new ArgumentException("Seleccioná un producto.");
     InventoryView RequireInventory()=>SelectedInventory??throw new ArgumentException("Seleccioná un producto del inventario.");
     SaleView RequireSale()=>SelectedSale??throw new ArgumentException("Seleccioná una venta.");
-    public string Message{get=>message;set{message=value;Changed();}}
+    /// <summary>Mensaje de resultado; asignarlo informa un éxito. Para errores usar <see cref="Fail"/>.</summary>
+    public string Message{get=>message;set=>Notify(value,InfoBarSeverity.Success);}
+    public InfoBarSeverity MessageSeverity=>severity;
+    public string MessageTitle=>severity switch{InfoBarSeverity.Error=>"No se pudo completar",InfoBarSeverity.Warning=>"Atención",InfoBarSeverity.Success=>"Listo",_=>""};
+    public bool HasMessage{get=>hasMessage;set{hasMessage=value;Changed();}}
+    public void Fail(string text)=>Notify(text,InfoBarSeverity.Error);
+    void Notify(string text,InfoBarSeverity kind){message=text;severity=kind;Changed(nameof(Message));Changed(nameof(MessageSeverity));Changed(nameof(MessageTitle));HasMessage=text.Length>0;}
+    public int Section{get=>section;set{section=value;Changed();}}
+    public ICommand NavigateCommand{get;}
+    public int AlertCount{get;private set;}
+    public Visibility AlertVisibility=>AlertCount>0?Visibility.Visible:Visibility.Collapsed;
+    public string BackupStatus{get;private set;}="";
+    public SymbolRegular BackupSymbol{get;private set;}=SymbolRegular.CheckmarkCircle24;
+    public Brush BackupBrush{get;private set;}=Brushes.Transparent;
+    public void SetDailyBackup(DateTime? at)
+    {
+        var ok=at!=null;BackupStatus=ok?$"Respaldo diario · {at:HH:mm}":"Sin respaldo diario";
+        BackupSymbol=ok?SymbolRegular.CheckmarkCircle24:SymbolRegular.Warning24;BackupBrush=new SolidColorBrush(ok?Color.FromRgb(0x12,0x80,0x5C):Color.FromRgb(0xA3,0x26,0x1F));
+        Changed(nameof(BackupStatus));Changed(nameof(BackupSymbol));Changed(nameof(BackupBrush));
+    }
     public string Search{get=>search;set{search=value;Changed();RefreshProducts();}}
     public bool IncludeInactive{get=>includeInactive;set{includeInactive=value;Changed();RefreshProducts();}}
     public ObservableCollection<ProductView> Products{get;private set;}=[];
@@ -104,7 +132,7 @@ public sealed class MainViewModel : Observable
     public ICommand MinimumStockCommand{get;}public ICommand RestockCommand{get;}public ICommand AdjustStockCommand{get;}public ICommand ManualStatusCommand{get;}public ICommand MovementsCommand{get;}
     public ICommand PreviewCommand{get;}public ICommand ApplyPricesCommand{get;}public ICommand HistoryCommand{get;}public ICommand SaleDetailsCommand{get;}public ICommand CancelSaleCommand{get;}public ICommand BackupCommand{get;}public ICommand RestoreCommand{get;}
     void RefreshProducts(){Products=new(service.Products(Search,IncludeInactive).Select(x=>new ProductView(x)));Changed(nameof(Products));}
-    void Refresh(){RefreshProducts();var products=service.Products(includeInactive:true).ToDictionary(x=>x.Id);Inventory=new(service.Inventory().Select(x=>new InventoryView(x,products[x.ProductId].Unit)));Changed(nameof(Inventory));}
+    void Refresh(){RefreshProducts();var products=service.Products(includeInactive:true).ToDictionary(x=>x.Id);Inventory=new(service.Inventory().Select(x=>new InventoryView(x,products[x.ProductId].Unit)));Changed(nameof(Inventory));AlertCount=Inventory.Count(x=>x.Status!="SUFICIENTE");Changed(nameof(AlertCount));Changed(nameof(AlertVisibility));}
     void CartChanged(){Changed(nameof(Total));Changed(nameof(EmptyCartVisibility));}
     void AddCart(){var p=RequireProduct().Product;if(!p.Active)throw new ArgumentException("El producto está inactivo.");var q=Pricing.Quantity(Display.Parse(SaleQuantity),p.Unit);var existing=Cart.FirstOrDefault(x=>x.Product.Id==p.Id);if(existing!=null){q=checked(q+existing.QuantityBase);Cart.Remove(existing);}Cart.Add(new(p,q));CartChanged();}
     void EditCart(){var item=SelectedCart??throw new ArgumentException("Seleccioná una línea del carrito.");var q=Pricing.Quantity(Display.Parse(CartQuantity),item.Product.Unit);var index=Cart.IndexOf(item);Cart[index]=new(item.Product,q);CartChanged();}
@@ -115,7 +143,7 @@ public sealed class MainViewModel : Observable
         bool changed=Cart.Any(x=>!current.TryGetValue(x.Product.Id,out var p)||p.PriceMinor!=x.Product.PriceMinor||p.Name!=x.Product.Name);
         for(var i=0;i<Cart.Count;i++){var line=Cart[i];if(!current.TryGetValue(line.Product.Id,out var p)||!p.Active)throw new ArgumentException("Hay productos inactivos en el carrito. Quitalos antes de cobrar.");Cart[i]=new(p,line.QuantityBase);}CartChanged();
         if(changed){Message="Los precios del carrito se actualizaron. Revisá el nuevo total y volvé a confirmar.";return;}
-        if(!Confirm($"¿Confirmar cobro de {Total} por {Payment.Label}?"))return;
+        if(!ConfirmDialog.Ask("Confirmar cobro",$"Total {Total} · {Payment.Label}","Cobrar"))return;
         var id=service.CompleteSale(Cart.Select(x=>new CartLine(x.Product.Id,x.QuantityBase)).ToList(),Payment.Value);Cart.Clear();CartChanged();Refresh();LoadHistory();Message=$"Venta {id} registrada correctamente.";
     }
     void EditProduct(Product? product){var dialog=new ProductWindow(product){Owner=Application.Current.MainWindow};if(dialog.ShowDialog()==true){service.SaveProduct(dialog.Result!);Refresh();Message="Producto guardado.";}}
@@ -123,7 +151,7 @@ public sealed class MainViewModel : Observable
     {
         var row=RequireInventory();var value=Display.Parse(StockQuantity);long q;
         if(absolute&&value==0)q=0;else q=Pricing.Quantity(value,row.Unit);
-        if(absolute&&!Confirm("¿Establecer el stock al valor indicado?"))return;
+        if(absolute&&!ConfirmDialog.Ask("Establecer stock",$"Las existencias de «{row.Row.Name}» pasarán a {Display.Quantity(q,row.Unit)}.","Establecer"))return;
         service.AdjustStock(row.Row.ProductId,q,absolute,StockNote);Refresh();Message="Inventario actualizado.";
     }
     void LoadMovements(){var p=RequireInventory();Movements=new(service.Movements(p.Row.ProductId).Select(x=>new MovementView(x,p.Unit)));Changed(nameof(Movements));}

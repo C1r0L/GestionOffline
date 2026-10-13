@@ -12,7 +12,7 @@ public sealed class ProductEditor : Observable
     public IReadOnlyList<UnitOption> Units{get;}=Enum.GetValues<SaleUnit>().Select(x=>new UnitOption(x,Display.Unit(x))).ToList();
     public IReadOnlyList<ModeOption> Modes{get;}=Enum.GetValues<StockMode>().Select(x=>new ModeOption(x,Display.Mode(x))).ToList();
 }
-public partial class ProductWindow : Window
+public partial class ProductWindow : Wpf.Ui.Controls.FluentWindow
 {
     readonly ProductEditor editor;
     public Product? Result{get;private set;}

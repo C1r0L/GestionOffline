@@ -1,0 +1,32 @@
+<UserControl x:Class="POS.Desktop.Views.SalePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+<DockPanel Margin="26,16,26,22">
+<TextBlock DockPanel.Dock="Top" Text="Nueva venta" Style="{StaticResource PageTitle}" Margin="0,0,0,16"/>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+<DockPanel>
+<StackPanel DockPanel.Dock="Top">
+<TextBlock Text="Buscar por nombre o código" Style="{StaticResource FieldLabel}"/>
+<ui:TextBox x:Name="SaleSearch" Text="{Binding Search,UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Buscá por nombre o escaneá el código" Icon="{ui:SymbolIcon Search24}" AutomationProperties.Name="Buscar producto"/>
+<StackPanel Orientation="Horizontal" Margin="0,10,0,4"><TextBlock Text="Cantidad" VerticalAlignment="Center" Margin="0,0,8,0"/><ui:TextBox Width="110" Text="{Binding SaleQuantity}" AutomationProperties.Name="Cantidad a vender"/><ui:Button Content="Agregar al carrito" Appearance="Primary" Command="{Binding AddCartCommand}" Margin="8,0,0,0" MinHeight="36"/></StackPanel>
+<TextBlock Text="Usá kg para peso (ej.: 0,5); unidades o packs enteros." Style="{StaticResource Hint}" Margin="0,0,0,10"/>
+</StackPanel>
+<ui:DataGrid ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column"><DataGrid.Columns><DataGridTextColumn Header="Producto" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Precio" Binding="{Binding Price}"/><DataGridTextColumn Header="Por" Binding="{Binding UnitLabel}"/></DataGrid.Columns></ui:DataGrid>
+</DockPanel>
+<Border Grid.Column="2" Style="{StaticResource Card}">
+<DockPanel><TextBlock DockPanel.Dock="Top" Text="Carrito" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+<StackPanel DockPanel.Dock="Bottom">
+<StackPanel Orientation="Horizontal" Margin="0,10,0,0"><ui:TextBox Width="110" Text="{Binding CartQuantity}" AutomationProperties.Name="Nueva cantidad del carrito"/><ui:Button Content="Cambiar cantidad" Command="{Binding EditCartCommand}" Margin="8,0,0,0"/><ui:Button Content="Quitar" Command="{Binding RemoveCartCommand}" Margin="8,0,0,0"/></StackPanel>
+<TextBlock Text="Agregá productos para empezar una venta." Visibility="{Binding EmptyCartVisibility}" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
+<Border Background="{StaticResource StrongGradient}" CornerRadius="12" Padding="16" Margin="0,12,0,0">
+<StackPanel>
+<DockPanel><TextBlock Text="Total" Foreground="White" FontSize="15" VerticalAlignment="Center"/><TextBlock Text="{Binding Total}" Foreground="White" FontSize="32" FontWeight="Bold" HorizontalAlignment="Right"/></DockPanel>
+<ComboBox ItemsSource="{Binding Payments}" SelectedItem="{Binding Payment}" DisplayMemberPath="Label" AutomationProperties.Name="Medio de pago" Margin="0,10,0,0"/>
+<ui:Button Content="Confirmar cobro" Command="{Binding CheckoutCommand}" HorizontalAlignment="Stretch" MinHeight="48" FontSize="16" FontWeight="Bold" Margin="0,10,0,0" Background="White" Foreground="{StaticResource PrimaryBrush}"/>
+</StackPanel>
+</Border>
+</StackPanel>
+<ui:DataGrid ItemsSource="{Binding Cart}" SelectedItem="{Binding SelectedCart}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column"><DataGrid.Columns><DataGridTextColumn Header="Producto" Binding="{Binding Name}" Width="*"/><DataGridTextColumn Header="Cantidad" Binding="{Binding QuantityLabel}"/><DataGridTextColumn Header="Importe" Binding="{Binding TotalLabel}"/></DataGrid.Columns></ui:DataGrid>
+</DockPanel>
+</Border>
+</Grid>
+</DockPanel>
+</UserControl>
