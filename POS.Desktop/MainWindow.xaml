@@ -7,6 +7,7 @@
 <KeyBinding Key="F3" Command="{Binding NavigateCommand}" CommandParameter="1"/>
 <KeyBinding Key="F4" Command="{Binding NavigateCommand}" CommandParameter="2"/>
 <KeyBinding Key="F5" Command="{Binding NavigateCommand}" CommandParameter="3"/>
+<KeyBinding Key="F6" Command="{Binding NavigateCommand}" CommandParameter="4"/>
 </Window.InputBindings>
 <Grid>
 <Grid.ColumnDefinitions><ColumnDefinition Width="236"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -42,6 +43,7 @@
 <Border DockPanel.Dock="Right" Background="{StaticResource DangerInkBrush}" CornerRadius="9" Padding="7,1" VerticalAlignment="Center" Visibility="{Binding AlertVisibility}" ToolTip="Productos con stock bajo o para reponer"><TextBlock Text="{Binding AlertCount}" FontSize="12" FontWeight="Bold" Foreground="White"/></Border>
 <TextBlock Text="Inventario" VerticalAlignment="Center"/></DockPanel></ListBoxItem>
 <ListBoxItem AutomationProperties.Name="Historial"><DockPanel><ui:SymbolIcon Symbol="Receipt24" FontSize="20" Margin="0,0,12,0"/><TextBlock DockPanel.Dock="Right" Text="F5" Style="{StaticResource ShortcutHint}"/><TextBlock Text="Historial" VerticalAlignment="Center"/></DockPanel></ListBoxItem>
+<ListBoxItem AutomationProperties.Name="Cierre del día"><DockPanel><ui:SymbolIcon Symbol="DataBarVertical24" FontSize="20" Margin="0,0,12,0"/><TextBlock DockPanel.Dock="Right" Text="F6" Style="{StaticResource ShortcutHint}"/><TextBlock Text="Cierre del día" VerticalAlignment="Center"/></DockPanel></ListBoxItem>
 </ListBox>
 </DockPanel>
 
@@ -52,6 +54,7 @@
 <views:ProductsPage Grid.Row="1" Visibility="{Binding Section,Converter={StaticResource SectionVisibility},ConverterParameter=1}"/>
 <views:InventoryPage Grid.Row="1" Visibility="{Binding Section,Converter={StaticResource SectionVisibility},ConverterParameter=2}"/>
 <views:HistoryPage Grid.Row="1" Visibility="{Binding Section,Converter={StaticResource SectionVisibility},ConverterParameter=3}"/>
+<views:ClosingPage Grid.Row="1" Visibility="{Binding Section,Converter={StaticResource SectionVisibility},ConverterParameter=4}"/>
 </Grid>
 </Grid>
 </ui:FluentWindow>

@@ -109,7 +109,7 @@ public sealed partial class MainViewModel : Observable
     public bool HasMessage{get=>hasMessage;set{hasMessage=value;Changed();}}
     public void Fail(string text)=>Notify(text,InfoBarSeverity.Error);
     void Notify(string text,InfoBarSeverity kind){message=text;severity=kind;Changed(nameof(Message));Changed(nameof(MessageSeverity));Changed(nameof(MessageTitle));HasMessage=text.Length>0;}
-    public int Section{get=>section;set{section=value;Changed();}}
+    public int Section{get=>section;set{section=value;Changed();if(value==4)Guard(LoadClosing);}}
     public ICommand NavigateCommand{get;}
     public int AlertCount{get;private set;}
     public Visibility AlertVisibility=>AlertCount>0?Visibility.Visible:Visibility.Collapsed;

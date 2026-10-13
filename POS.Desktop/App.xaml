@@ -1,4 +1,4 @@
-<Application x:Class="POS.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" StartupUri="MainWindow.xaml">
+<Application x:Class="POS.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:local="clr-namespace:POS.Desktop" StartupUri="MainWindow.xaml">
 <Application.Resources>
 <ResourceDictionary>
 <ResourceDictionary.MergedDictionaries>
@@ -6,6 +6,8 @@
 <ui:ControlsDictionary/>
 <ResourceDictionary Source="Theme/MiPos.xaml"/>
 </ResourceDictionary.MergedDictionaries>
+<local:MoneyConverter x:Key="Money"/>
+<local:InvertBoolConverter x:Key="Invert"/>
 </ResourceDictionary>
 </Application.Resources>
 </Application>
