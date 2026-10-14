@@ -34,7 +34,7 @@ Desarrollar una aplicación de escritorio sencilla, moderna y completamente offl
 - Proveedores, órdenes de compra, cuentas corrientes y fidelización.
 - Integración con impresoras fiscales, balanzas, terminales de pago o lectores especiales (la entrada de un lector tipo teclado puede evaluarse después).
 - Dashboard avanzado, reportes contables, impuestos complejos y cálculo de rentabilidad.
-- Control formal de caja (apertura, cierre, arqueo): **pendiente de decisión**.
+- Control formal de caja (apertura, arqueo guardado). **Decidido:** se incluye un cierre del día informativo con conteo de efectivo no persistido; ver `docs/decisions.md`.
 
 ## 3. Stack técnico
 
@@ -139,12 +139,13 @@ Reglas de dependencia:
 
 ## 7. Interfaz y experiencia de usuario
 
-Navegación principal con cuatro secciones:
+Navegación principal con cinco secciones (la quinta se agregó en el rediseño):
 
 1. **Nueva venta (pantalla inicial):** foco en buscador, resultados rápidos, carrito visible, cantidades editables, total destacado y confirmación clara.
 2. **Productos:** listado filtrable, formulario simple y edición masiva de precios con vista previa.
 3. **Inventario:** existencias, estado de reposición, ajuste manual, reposición e historial de movimientos.
 4. **Historial:** filtro por fechas, ventas y detalle; opción de anular con confirmación y motivo.
+5. **Cierre del día:** totales del día, cobros por medio de pago, productos vendidos, control de efectivo e impresión del resumen.
 
 Criterios UX: lenguaje cotidiano en español, controles suficientemente grandes, mensajes de error comprensibles, pocos pasos, navegación por teclado, confirmación de acciones destructivas y estados vacíos explicativos. Evitar paneles complejos y configuración técnica expuesta al usuario.
 
