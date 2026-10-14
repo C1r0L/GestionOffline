@@ -6,16 +6,43 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      # Un tag vX.Y.Z fija la versión del instalador y publica una Release; el resto de los pushes usa la de Directory.Build.props.
+      - name: Determinar versión
+        id: version
+        shell: pwsh
+        run: |
+          $version = ''
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $version = $env:GITHUB_REF_NAME -replace '^v', ''
+            if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "El tag $env:GITHUB_REF_NAME no tiene el formato vX.Y.Z." }
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
       - name: Compilar, probar y crear instalador
         shell: pwsh
-        run: ./packaging/build.ps1
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: ./packaging/build.ps1 -Version $env:VERSION
       - uses: actions/upload-artifact@v4
         with:
           name: MiPOS-Windows-x64
-          path: artifacts/installer/*.exe
+          path: |
+            artifacts/installer/MiPOS-Setup-x64.exe
+            artifacts/installer/MiPOS-Setup-x64.exe.sha256
           if-no-files-found: error
+      # El actualizador de MiPOS busca esta Release: necesita el instalador y su .sha256 con estos nombres.
+      - name: Publicar release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME artifacts/installer/MiPOS-Setup-x64.exe artifacts/installer/MiPOS-Setup-x64.exe.sha256 --title "MiPOS $env:VERSION" --generate-notes --verify-tag
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release.' }

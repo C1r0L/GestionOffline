@@ -17,7 +17,8 @@ public partial class MainWindow : FluentWindow
             var backups=System.IO.Path.Combine(root,"backups");
             try { service.DailyBackup(backups);vm.SetDailyBackup(System.IO.File.GetLastWriteTime(System.IO.Path.Combine(backups,$"pos-{DateTime.Now:yyyy-MM-dd}.db"))); }
             catch(Exception){vm.SetDailyBackup(null);vm.Fail("No se pudo crear el respaldo diario. Exportá un respaldo a una unidad externa.");}
-            Loaded+=(_,_)=>SalePageView.FocusSearch();
+            vm.ConfigureUpdates(root);
+            Loaded+=async(_,_)=>{SalePageView.FocusSearch();await vm.CheckForUpdatesOnStartupAsync();};
         }
         catch(Exception){System.Windows.MessageBox.Show("No se pudo abrir la base de datos. Conservá tus archivos y contactá al soporte.","MiPOS",System.Windows.MessageBoxButton.OK,System.Windows.MessageBoxImage.Error);Close();}
     }

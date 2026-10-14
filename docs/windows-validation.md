@@ -30,4 +30,9 @@ Las pantallas se revisaron con Wine en Linux, que no reproduce fielmente fuentes
 21. Cierre del día: los totales coinciden con el Historial del mismo día; imprimir en una impresora real y en "Microsoft Print to PDF", y revisar que el documento entre en una página A4 o carta con los datos completos.
 22. Escala de pantalla 100%, 125% y 150% y ventana mínima (1040×680): sin textos cortados ni barras de desplazamiento horizontales en las tablas.
 
+## Actualizador
+
+23. Instalar una versión con actualizador (0.3.0 o posterior), publicar una release más nueva con un tag `vX.Y.Z` (por ejemplo `v0.3.1`) y abrir MiPOS: aparece el aviso, las novedades coinciden con la release, "Descargar e instalar" respalda los datos en `backups`, instala sin pedir permisos de administrador y vuelve a abrir MiPOS en la versión nueva con los datos intactos.
+24. Con una venta en curso, el diálogo no permite instalar. Sin conexión no aparece ningún aviso y "Buscar actualizaciones" informa el problema. Al volver a abrir el mismo día no se repite la búsqueda automática.
+
 Registrar versión de Windows, artefacto, fecha, resultados y cualquier defecto encontrado. La compilación desde Linux no sustituye estos pasos.
