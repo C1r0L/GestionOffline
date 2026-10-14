@@ -10,6 +10,7 @@
 - Interfaz: WPF UI 4.3.0 (licencia MIT) con tema claro Fluent y paleta propia de celestes y verdes; menú lateral en lugar de pestañas.
 - Vuelto en efectivo: se calcula y muestra al cobrar; el monto recibido no se guarda.
 - Cierre del día: resumen calculado a partir de las ventas guardadas (sin tablas nuevas). Las ventas anuladas no suman y se informan aparte. El efectivo contado solo se usa para mostrar la diferencia y para el resumen impreso; no se guarda.
+- Actualizaciones: MiPOS consulta la última Release pública de GitHub al abrir, como máximo una vez por día, y solo avisa; instala únicamente con confirmación del usuario y sin venta en curso. Verifica el SHA-256 publicado, respalda los datos y ejecuta el instalador de Inno Setup en modo silencioso. Sin conexión no hace nada visible: la aplicación sigue funcionando sin internet. Las releases se publican desde GitHub Actions al subir un tag `vX.Y.Z`.
 - Impresión: solo el resumen del cierre, en impresora común mediante el diálogo de Windows (incluye "Microsoft Print to PDF"). Sin ticketeras térmicas ni impresoras fiscales.
 - Respaldo automático al abrir cada día, retención de siete días con apertura; exportación externa manual recomendada.
 

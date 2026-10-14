@@ -21,6 +21,9 @@
 <StackPanel Margin="10,0,0,0" VerticalAlignment="Center"><TextBlock Text="MiPOS" FontSize="18" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/><TextBlock Text="Gestión offline" FontSize="12" Foreground="#3E5A64"/></StackPanel>
 </StackPanel>
 
+<Button DockPanel.Dock="Bottom" Style="{StaticResource QuietButton}" Command="{Binding CheckUpdatesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="0,6,0,0" MinHeight="30" ToolTip="Buscar actualizaciones" AutomationProperties.Name="Buscar actualizaciones">
+<DockPanel><ui:SymbolIcon DockPanel.Dock="Right" Symbol="ArrowSync24" FontSize="14" Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding VersionLabel}" FontSize="12" Foreground="#3E5A64"/></DockPanel>
+</Button>
 <Border DockPanel.Dock="Bottom" CornerRadius="10" Background="#B3FFFFFF" Padding="12">
 <StackPanel>
 <DockPanel Margin="0,0,0,8">
@@ -33,6 +36,17 @@
 <MenuItem Header="Restaurar respaldo…" Command="{Binding RestoreCommand}"><MenuItem.Icon><ui:SymbolIcon Symbol="ArrowDownload24"/></MenuItem.Icon></MenuItem>
 </ContextMenu></ui:Button.ContextMenu>
 </ui:Button>
+</StackPanel>
+</Border>
+
+<Border DockPanel.Dock="Bottom" Visibility="{Binding UpdateVisibility}" CornerRadius="10" Background="{StaticResource StrongGradient}" Padding="12" Margin="0,0,0,8">
+<StackPanel>
+<DockPanel Margin="0,0,0,8"><ui:SymbolIcon DockPanel.Dock="Left" Symbol="ArrowDownload24" Foreground="White" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Top"/><TextBlock Text="{Binding UpdateLabel}" FontSize="13" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/></DockPanel>
+<Button Command="{Binding ShowUpdateCommand}" MinHeight="34" HorizontalAlignment="Stretch" Cursor="Hand" AutomationProperties.Name="Ver la actualización">
+<Button.Template><ControlTemplate TargetType="Button"><Border x:Name="Bd" CornerRadius="8" Background="White" BorderThickness="2" BorderBrush="White"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+<ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#F0FAFC"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource InkBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+<TextBlock Text="Ver y actualizar…" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource PrimaryBrush}"/>
+</Button>
 </StackPanel>
 </Border>
 

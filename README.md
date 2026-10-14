@@ -1,6 +1,6 @@
 # MiPOS — Gestión offline
 
-MVP de escritorio en español para Windows x64. C# / .NET 10 LTS, WPF con MVVM, [WPF UI](https://github.com/lepoco/wpfui) (estilo Fluent de Windows 11), SQLite y Dapper. No requiere internet para funcionar, cuentas ni servicios externos.
+MVP de escritorio en español para Windows x64. C# / .NET 10 LTS, WPF con MVVM, [WPF UI](https://github.com/lepoco/wpfui) (estilo Fluent de Windows 11), SQLite y Dapper. No requiere internet para funcionar, cuentas ni servicios externos; si hay conexión, avisa cuando se publica una versión nueva.
 
 ## Desarrollo
 
@@ -48,6 +48,7 @@ La navegación es un menú lateral. Debajo están el estado del respaldo diario 
 4. **Historial**. Períodos rápidos o fechas a elección, totales del período y detalle con precios históricos. La anulación exige motivo y confirmación, conserva la venta y devuelve el stock una única vez.
 5. **Cierre del día**. Totales del día, cobros por medio de pago, productos vendidos y control de efectivo (el conteo no se guarda). "Imprimir resumen" muestra una vista previa y usa el diálogo de impresión de Windows; con "Microsoft Print to PDF" se obtiene un PDF.
 6. **Respaldos**. Exportar a una unidad externa. Restaurar requiere confirmación y conserva una copia previa de los datos actuales.
+7. **Actualizaciones**. Al abrir, como máximo una vez por día, MiPOS consulta si hay una versión nueva publicada en GitHub. Si la hay, muestra un aviso en el menú lateral; el usuario ve las novedades y confirma. Antes de instalar se hace un respaldo en `backups`, se descarga el instalador, se verifica su SHA-256 y se instala en modo silencioso; MiPOS se cierra y se vuelve a abrir sola. No se puede actualizar con una venta en curso. Sin conexión no aparece ningún aviso. "Versión X.Y.Z", debajo de Respaldos, busca en el momento.
 
 ### Atajos de teclado
 
@@ -95,6 +96,14 @@ En Windows, instalar [Inno Setup 6](https://jrsoftware.org/isinfo.php) en su ubi
 Genera `artifacts/installer/MiPOS-Setup-x64.exe`. También hay un workflow de GitHub Actions para compilar, probar y empaquetar en Windows. No se ha enviado ni ejecutado ese workflow desde este entorno. El instalador no tiene firma de código. Incluye `THIRD-PARTY-NOTICES.txt` con la licencia de WPF UI.
 
 Validación manual requerida antes de distribuir: [checklist Windows](docs/windows-validation.md).
+
+### Publicar una versión
+
+1. Actualizar `<Version>` en `Directory.Build.props` (por ejemplo `0.4.0`) y hacer merge a `main`.
+2. Crear y subir el tag con la misma versión: `git tag v0.4.0 && git push origin v0.4.0`.
+3. El workflow arma el instalador con esa versión y crea la Release `v0.4.0` con `MiPOS-Setup-x64.exe` y `MiPOS-Setup-x64.exe.sha256`. Las notas se generan a partir de los PR y se pueden editar en GitHub; son las "Novedades" que ve el usuario.
+
+Las instalaciones existentes la detectan al abrirse (como máximo una vez por día). La 0.3.0 es la primera versión con actualizador: las instalaciones anteriores se actualizan a mano una vez. El actualizador solo acepta releases publicadas (no borradores ni pre-releases) con tag `vX.Y.Z` y ambos archivos.
 
 ## Alcance
 
