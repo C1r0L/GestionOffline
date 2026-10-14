@@ -55,6 +55,7 @@ public sealed partial class MainViewModel
         }
     }
     public ObservableCollection<MovementView> Movements{get;private set;}=[];
+    public Visibility NoInventoryVisibility=>FilteredInventory.Count==0?Visibility.Visible:Visibility.Collapsed;
     public Visibility DetailVisibility=>SelectedInventory!=null?Visibility.Visible:Visibility.Collapsed;
     public Visibility NoDetailVisibility=>SelectedInventory==null?Visibility.Visible:Visibility.Collapsed;
     public Visibility MeasurableVisibility=>SelectedInventory is {IsManual:false}?Visibility.Visible:Visibility.Collapsed;
@@ -121,7 +122,7 @@ public sealed partial class MainViewModel
         var keep=SelectedInventory?.Row.ProductId;
         FilteredInventory=new(Inventory.Where(x=>inventoryFilter=="Todos"||x.Status==inventoryFilter).Where(x=>InventorySearch.Trim().Length==0||Display.Culture.CompareInfo.IndexOf(x.Name,InventorySearch.Trim(),System.Globalization.CompareOptions.IgnoreCase|System.Globalization.CompareOptions.IgnoreNonSpace)>=0)
             .OrderBy(x=>x.Status switch{"REPONER"=>0,"BAJO"=>1,_=>2}).ThenBy(x=>x.Name,StringComparer.Create(Display.Culture,true)));
-        Changed(nameof(FilteredInventory));
+        Changed(nameof(FilteredInventory));Changed(nameof(NoInventoryVisibility));
         SelectedInventory=FilteredInventory.FirstOrDefault(x=>x.Row.ProductId==keep);
     }
     void RefreshKeepingSelection(){var keep=SelectedInventory?.Row.ProductId;Refresh();SelectedInventory=FilteredInventory.FirstOrDefault(x=>x.Row.ProductId==keep);}

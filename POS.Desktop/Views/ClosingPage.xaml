@@ -17,12 +17,12 @@
 
 <UniformGrid DockPanel.Dock="Top" Rows="1" Margin="0,0,0,14">
 <Border Background="{StaticResource StrongGradient}" CornerRadius="12" Padding="16,12" Margin="0,0,6,0">
-<StackPanel><TextBlock Text="Total del día" FontSize="13" Foreground="White"/><TextBlock Text="{Binding Closing.TotalMinor,Converter={StaticResource Money}}" FontSize="26" FontWeight="Bold" Foreground="White"/></StackPanel>
+<StackPanel><TextBlock Text="Total del día" FontSize="13" Foreground="White"/><Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left"><TextBlock Text="{Binding Closing.TotalMinor,Converter={StaticResource Money}}" FontSize="26" FontWeight="Bold" Foreground="White"/></Viewbox></StackPanel>
 </Border>
-<Border Style="{StaticResource StatCard}" Margin="6,0"><StackPanel><TextBlock Text="Ventas" FontSize="13" Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding Closing.Count}" FontSize="26" FontWeight="Bold"/></StackPanel></Border>
-<Border Style="{StaticResource StatCard}" Margin="6,0"><StackPanel><TextBlock Text="Ticket promedio" FontSize="13" Foreground="{StaticResource MutedBrush}"/><TextBlock Text="{Binding Closing.Average}" FontSize="26" FontWeight="Bold"/></StackPanel></Border>
+<Border Style="{StaticResource StatCard}" Margin="6,0"><StackPanel><TextBlock Text="Ventas" FontSize="13" Foreground="{StaticResource MutedBrush}"/><Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left"><TextBlock Text="{Binding Closing.Count}" FontSize="26" FontWeight="Bold"/></Viewbox></StackPanel></Border>
+<Border Style="{StaticResource StatCard}" Margin="6,0"><StackPanel><TextBlock Text="Ticket promedio" FontSize="13" Foreground="{StaticResource MutedBrush}"/><Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left"><TextBlock Text="{Binding Closing.Average}" FontSize="26" FontWeight="Bold"/></Viewbox></StackPanel></Border>
 <Border Style="{StaticResource StatCard}" Margin="6,0,0,0"><StackPanel><TextBlock Text="Anuladas" FontSize="13" Foreground="{StaticResource MutedBrush}"/>
-<TextBlock><Run Text="{Binding Closing.CancelledCount,Mode=OneWay}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource DangerInkBrush}"/><Run Text="  "/><Run Text="{Binding Closing.CancelledMinor,Mode=OneWay,Converter={StaticResource Money}}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource DangerInkBrush}"/></TextBlock></StackPanel></Border>
+<Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left"><TextBlock><Run Text="{Binding Closing.CancelledCount,Mode=OneWay}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource DangerInkBrush}"/><Run Text="  "/><Run Text="{Binding Closing.CancelledMinor,Mode=OneWay,Converter={StaticResource Money}}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource DangerInkBrush}"/></TextBlock></Viewbox></StackPanel></Border>
 </UniformGrid>
 
 <Grid>
@@ -51,7 +51,7 @@
 </ItemsControl>
 
 <Border Background="{StaticResource SuccessSoftBrush}" CornerRadius="10" Padding="14,12" Margin="0,14,0,0">
-<DockPanel><TextBlock Text="{Binding Closing.CashMinor,Converter={StaticResource Money}}" DockPanel.Dock="Right" FontSize="18" FontWeight="Bold" Foreground="{StaticResource SuccessInkBrush}"/><TextBlock Text="Efectivo que debería haber en caja" FontWeight="SemiBold" Foreground="{StaticResource SuccessInkBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/></DockPanel>
+<DockPanel><TextBlock Text="{Binding Closing.CashMinor,Converter={StaticResource Money}}" DockPanel.Dock="Right" FontSize="18" FontWeight="Bold" Foreground="{StaticResource SuccessInkBrush}" Margin="10,0,0,0"/><TextBlock Text="Efectivo que debería haber en caja" FontWeight="SemiBold" Foreground="{StaticResource SuccessInkBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/></DockPanel>
 </Border>
 
 <TextBlock Text="Efectivo contado (opcional)" Style="{StaticResource FieldLabel}" Margin="0,14,0,6"/>

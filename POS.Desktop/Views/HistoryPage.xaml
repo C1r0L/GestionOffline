@@ -24,30 +24,25 @@
 </UniformGrid>
 
 <Grid>
-<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="360"/></Grid.ColumnDefinitions>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/><ColumnDefinition Width="0.75*" MinWidth="270" MaxWidth="380"/></Grid.ColumnDefinitions>
 
 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="4">
 <Grid>
-<ui:DataGrid ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" SelectionMode="Single" RowHeight="48" GridLinesVisibility="None" AutomationProperties.Name="Ventas">
-<DataGrid.Columns>
-<DataGridTemplateColumn Header="N.º" MinWidth="56" SortMemberPath="Sale.Id"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding Sale.Id}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="FECHA" Width="*" SortMemberPath="Sale.CreatedAt"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding Date}" VerticalAlignment="Center" Foreground="#3E5A64"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="MEDIO DE PAGO" MinWidth="120" SortMemberPath="Payment"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding Payment}" VerticalAlignment="Center"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="ESTADO" MinWidth="110" SortMemberPath="Status"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<Border Style="{StaticResource StockPill}" Tag="{Binding StatusKind}" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,2"><TextBlock Text="{Binding Status}" FontSize="12"/></Border>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="TOTAL" MinWidth="110" SortMemberPath="Sale.TotalMinor"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock x:Name="Amount" Text="{Binding Total}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Margin="0,0,8,0"/>
+<DockPanel>
+<Grid DockPanel.Dock="Top" Margin="12,10,12,8"><Grid.ColumnDefinitions><ColumnDefinition Width="0.4*" MinWidth="36"/><ColumnDefinition Width="1*" MinWidth="88"/><ColumnDefinition Width="1*" MinWidth="84"/><ColumnDefinition Width="1*" MinWidth="92"/><ColumnDefinition Width="1*" MinWidth="96"/></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="N.º" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="1" Text="FECHA" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="2" Text="PAGO" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="3" Text="ESTADO" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="4" Text="TOTAL" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" Margin="0,0,8,0"/></Grid>
+<ListBox Style="{StaticResource TableList}" ItemContainerStyle="{StaticResource TableRow}" ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}" AutomationProperties.Name="Ventas">
+<ListBox.ItemTemplate><DataTemplate>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="0.4*" MinWidth="36"/><ColumnDefinition Width="1*" MinWidth="88"/><ColumnDefinition Width="1*" MinWidth="84"/><ColumnDefinition Width="1*" MinWidth="92"/><ColumnDefinition Width="1*" MinWidth="96"/></Grid.ColumnDefinitions>
+<TextBlock Text="{Binding Sale.Id}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+<TextBlock Grid.Column="1" Text="{Binding ShortDate}" ToolTip="{Binding Date}" VerticalAlignment="Center" Foreground="#3E5A64"/>
+<TextBlock Grid.Column="2" Text="{Binding Payment}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+<Border Grid.Column="3" Style="{StaticResource StockPill}" Tag="{Binding StatusKind}" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,2"><TextBlock Text="{Binding Status}" FontSize="12"/></Border>
+<TextBlock x:Name="Amount" Grid.Column="4" Text="{Binding Total}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold" Margin="0,0,8,0"/>
+</Grid>
 <DataTemplate.Triggers><DataTrigger Binding="{Binding IsCancelled}" Value="True"><Setter TargetName="Amount" Property="TextDecorations" Value="Strikethrough"/><Setter TargetName="Amount" Property="Foreground" Value="{StaticResource MutedBrush}"/><Setter TargetName="Amount" Property="FontWeight" Value="Normal"/></DataTrigger></DataTemplate.Triggers>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-</DataGrid.Columns>
-</ui:DataGrid>
+</DataTemplate></ListBox.ItemTemplate>
+</ListBox>
+</DockPanel>
 <StackPanel Visibility="{Binding NoSalesVisibility}" HorizontalAlignment="Center" VerticalAlignment="Center">
 <ui:SymbolIcon Symbol="Receipt24" FontSize="40" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center"/>
 <TextBlock Text="No hay ventas en este período." Style="{StaticResource Hint}" Margin="0,8,0,0"/>

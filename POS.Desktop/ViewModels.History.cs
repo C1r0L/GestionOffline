@@ -7,6 +7,8 @@ public sealed record SaleView(SaleSummary Sale)
 {
     public bool IsCancelled=>Sale.Status!="COMPLETED";
     public string Date=>Display.Date(Sale.CreatedAt);
+    /// <summary>Fecha sin año para la tabla; el período ya indica el año.</summary>
+    public string ShortDate=>DateTime.Parse(Sale.CreatedAt,System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.RoundtripKind).ToLocalTime().ToString("dd/MM HH:mm",Display.Culture);
     public string Status=>IsCancelled?"Anulada":"Completada";
     /// <summary>ok u out para la etiqueta de color.</summary>
     public string StatusKind=>IsCancelled?"out":"ok";

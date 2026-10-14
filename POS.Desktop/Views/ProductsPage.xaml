@@ -13,43 +13,34 @@
 <CheckBox DockPanel.Dock="Right" Content="Mostrar inactivos" IsChecked="{Binding IncludeInactive}" VerticalAlignment="Center" Margin="12,0,0,0"/>
 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
 <TextBlock Text="Categoría" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="13"/>
-<ComboBox Width="170" ItemsSource="{Binding ProductCategories}" SelectedItem="{Binding ProductCategory}" AutomationProperties.Name="Filtrar por categoría"/>
+<ComboBox Width="150" ItemsSource="{Binding ProductCategories}" SelectedItem="{Binding ProductCategory}" AutomationProperties.Name="Filtrar por categoría"/>
 </StackPanel>
-<ui:TextBox Text="{Binding Search,UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Buscar por nombre o código" Icon="{ui:SymbolIcon Search24}" AutomationProperties.Name="Buscar en el catálogo"/>
+<ui:TextBox Text="{Binding Search,UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Buscar por nombre o código" MinWidth="160" Icon="{ui:SymbolIcon Search24}" AutomationProperties.Name="Buscar en el catálogo"/>
 </DockPanel>
 
 <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="0,8,0,0" Text="Doble clic o Enter sobre una fila para editar. Ctrl+N crea un producto."/>
 
 <Grid>
 <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="4">
-<ui:DataGrid x:Name="Grid" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" SelectionMode="Single" RowHeight="56" GridLinesVisibility="None" MouseDoubleClick="GridDoubleClick" PreviewKeyDown="GridKeyDown" AutomationProperties.Name="Catálogo de productos">
-<DataGrid.Columns>
-<DataGridTemplateColumn Header="PRODUCTO" Width="*" SortMemberPath="Name"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<StackPanel VerticalAlignment="Center" Margin="8,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Code}" FontSize="12" Foreground="{StaticResource MutedBrush}"/></StackPanel>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="CATEGORÍA" MinWidth="120" SortMemberPath="Category"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<Border Style="{StaticResource TagPill}" VerticalAlignment="Center"><TextBlock Text="{Binding Category}"/></Border>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="SE VENDE POR" MinWidth="150" SortMemberPath="SellLabel"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding SellLabel}" VerticalAlignment="Center" Foreground="#3E5A64"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="PRECIO" MinWidth="110" SortMemberPath="Product.PriceMinor"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding Price}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" Margin="0,0,8,0"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="MARGEN" MinWidth="80"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<TextBlock Text="{Binding Margin}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#3E5A64" Margin="0,0,8,0" ToolTip="Ganancia sobre el costo"/>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn Header="ESTADO" MinWidth="90" SortMemberPath="StateLabel"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<Border Style="{StaticResource StatePill}" Tag="{Binding StateLabel}" VerticalAlignment="Center"><TextBlock Text="{Binding StateLabel}"/></Border>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-<DataGridTemplateColumn MinWidth="118"><DataGridTemplateColumn.CellTemplate><DataTemplate>
-<StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+<DockPanel>
+<Grid DockPanel.Dock="Top" Margin="12,10,12,8"><Grid.ColumnDefinitions><ColumnDefinition Width="2.4*" MinWidth="140"/><ColumnDefinition Width="1*" MinWidth="95"/><ColumnDefinition Width="1.3*" MinWidth="120"/><ColumnDefinition Width="1*" MinWidth="95"/><ColumnDefinition Width="0.7*" MinWidth="60"/><ColumnDefinition Width="0.8*" MinWidth="76"/><ColumnDefinition Width="1*" MinWidth="110"/></Grid.ColumnDefinitions><TextBlock Grid.Column="0" Text="PRODUCTO" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="1" Text="CATEGORÍA" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="2" Text="SE VENDE POR" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="3" Text="PRECIO" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" Margin="0,0,8,0"/><TextBlock Grid.Column="4" Text="MARGEN" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" Margin="0,0,8,0"/><TextBlock Grid.Column="5" Text="ESTADO" Style="{StaticResource TableHeader}"/><TextBlock Grid.Column="6" Text="" Style="{StaticResource TableHeader}"/></Grid>
+<ListBox x:Name="Grid" Style="{StaticResource TableList}" ItemContainerStyle="{StaticResource TableRow}" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" MouseDoubleClick="GridDoubleClick" PreviewKeyDown="GridKeyDown" AutomationProperties.Name="Catálogo de productos">
+<ListBox.ItemTemplate><DataTemplate>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="2.4*" MinWidth="140"/><ColumnDefinition Width="1*" MinWidth="95"/><ColumnDefinition Width="1.3*" MinWidth="120"/><ColumnDefinition Width="1*" MinWidth="95"/><ColumnDefinition Width="0.7*" MinWidth="60"/><ColumnDefinition Width="0.8*" MinWidth="76"/><ColumnDefinition Width="1*" MinWidth="110"/></Grid.ColumnDefinitions>
+<StackPanel VerticalAlignment="Center" Margin="0,0,8,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Code}" FontSize="12" Foreground="{StaticResource MutedBrush}"/></StackPanel>
+<Border Grid.Column="1" Style="{StaticResource TagPill}" VerticalAlignment="Center"><TextBlock Text="{Binding Category}" TextTrimming="CharacterEllipsis"/></Border>
+<TextBlock Grid.Column="2" Text="{Binding SellLabel}" VerticalAlignment="Center" Foreground="#3E5A64" TextTrimming="CharacterEllipsis" Margin="8,0,0,0"/>
+<TextBlock Grid.Column="3" Text="{Binding Price}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" Margin="0,0,8,0"/>
+<TextBlock Grid.Column="4" Text="{Binding Margin}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#3E5A64" Margin="0,0,8,0" ToolTip="Ganancia sobre el costo"/>
+<Border Grid.Column="5" Style="{StaticResource StatePill}" Tag="{Binding StateLabel}" VerticalAlignment="Center"><TextBlock Text="{Binding StateLabel}"/></Border>
+<StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
 <Button Style="{StaticResource QuietButton}" Command="{Binding DataContext.EditProductCommand,ElementName=Page}" CommandParameter="{Binding}" AutomationProperties.Name="Editar producto" ToolTip="Editar"><ui:SymbolIcon Symbol="Edit24" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/></Button>
 <Button Style="{StaticResource QuietButton}" Command="{Binding DataContext.ToggleProductCommand,ElementName=Page}" CommandParameter="{Binding}" Content="{Binding ToggleLabel}" FontSize="12"/>
 </StackPanel>
-</DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-</DataGrid.Columns>
-</ui:DataGrid>
+</Grid>
+</DataTemplate></ListBox.ItemTemplate>
+</ListBox>
+</DockPanel>
 </Border>
 
 <!-- Ajuste masivo de precios: cajón superpuesto sobre la tabla -->

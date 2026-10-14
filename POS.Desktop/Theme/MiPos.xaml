@@ -315,6 +315,41 @@
 <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
 <Setter Property="BorderThickness" Value="1"/>
 </Style>
+<!-- Tabla de solo lectura: ListBox con filas en Grid de columnas proporcionales.
+     A diferencia del DataGrid, recalcula bien los anchos al cambiar el tamaño de la ventana. -->
+<Style x:Key="TableList" TargetType="ListBox">
+<Setter Property="Background" Value="Transparent"/>
+<Setter Property="BorderThickness" Value="0"/>
+<Setter Property="Padding" Value="0"/>
+<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+<Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBox"><ScrollViewer Focusable="False" Padding="0"><ItemsPresenter/></ScrollViewer></ControlTemplate></Setter.Value></Setter>
+</Style>
+<Style x:Key="TableRow" TargetType="ListBoxItem">
+<Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+<Setter Property="MinHeight" Value="48"/>
+<Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
+<Grid>
+<Border x:Name="Bd" Padding="12,4" Background="Transparent" BorderBrush="#EEF3F5" BorderThickness="0,0,0,1" CornerRadius="0"><ContentPresenter VerticalAlignment="Center"/></Border>
+<Border x:Name="Marker" Width="3" HorizontalAlignment="Left" Margin="0,8" CornerRadius="2" Background="{StaticResource PrimaryBrush}" Visibility="Collapsed"/>
+<Border x:Name="Focus" BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5" CornerRadius="6" Visibility="Collapsed"/>
+</Grid>
+<ControlTemplate.Triggers>
+<Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#F6FAFB"/></Trigger>
+<Trigger Property="IsSelected" Value="True"><Setter TargetName="Bd" Property="Background" Value="#EEF8FB"/><Setter TargetName="Marker" Property="Visibility" Value="Visible"/></Trigger>
+<Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Focus" Property="Visibility" Value="Visible"/></Trigger>
+</ControlTemplate.Triggers>
+</ControlTemplate></Setter.Value></Setter>
+</Style>
+<Style x:Key="TableHeader" TargetType="TextBlock">
+<Setter Property="FontSize" Value="11.5"/>
+<Setter Property="FontWeight" Value="SemiBold"/>
+<Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+<Setter Property="VerticalAlignment" Value="Center"/>
+<Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+</Style>
 <Style x:Key="ShortcutHint" TargetType="TextBlock">
 <Setter Property="FontSize" Value="12"/>
 <Setter Property="FontWeight" Value="Normal"/>
