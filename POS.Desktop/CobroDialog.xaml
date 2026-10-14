@@ -1,0 +1,36 @@
+<ui:FluentWindow x:Class="POS.Desktop.CobroDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Confirmar cobro" Width="480" Height="520" MinHeight="0" MinWidth="0" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+    ExtendsContentIntoTitleBar="True" WindowBackdropType="None" WindowCornerPreference="Round" Background="{StaticResource SurfaceBrush}">
+<StackPanel x:Name="Root">
+<Border Background="{StaticResource StrongGradient}">
+<StackPanel>
+<ui:TitleBar ShowMinimize="False" ShowMaximize="False" ShowHelp="False" CanMaximize="False" ButtonsForeground="White"/>
+<StackPanel Margin="24,0,24,20">
+<TextBlock x:Name="Summary" Foreground="White" FontSize="14"/>
+<TextBlock x:Name="TotalText" Foreground="White" FontSize="38" FontWeight="Bold" Margin="0,2,0,0"/>
+</StackPanel>
+</StackPanel>
+</Border>
+<StackPanel Margin="24,18,24,18">
+<DockPanel>
+<TextBlock Text="Medio de pago" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{StaticResource InkBrush}"/>
+<Border HorizontalAlignment="Right" Background="{StaticResource PrimarySoftBrush}" CornerRadius="12" Padding="12,4"><TextBlock x:Name="Method" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/></Border>
+</DockPanel>
+<StackPanel x:Name="CashPanel" Margin="0,16,0,0">
+<TextBlock Text="Paga con" Style="{StaticResource FieldLabel}"/>
+<DockPanel><TextBlock Text="$" DockPanel.Dock="Left" FontSize="20" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource MutedBrush}"/><ui:TextBox x:Name="Paid" FontSize="22" FontWeight="SemiBold" PlaceholderText="Opcional" TextChanged="PaidChanged" AutomationProperties.Name="Paga con"/></DockPanel>
+<WrapPanel x:Name="QuickAmounts" Margin="0,10,0,0"/>
+<Border x:Name="ChangeBox" Background="{StaticResource SuccessSoftBrush}" CornerRadius="10" Padding="16,12" Margin="0,12,0,0">
+<DockPanel><TextBlock x:Name="ChangeLabel" Text="Vuelto" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{StaticResource SuccessInkBrush}"/><TextBlock x:Name="ChangeText" HorizontalAlignment="Right" FontSize="26" FontWeight="Bold" Foreground="{StaticResource SuccessInkBrush}"/></DockPanel>
+</Border>
+</StackPanel>
+<TextBlock x:Name="OtherHint" Style="{StaticResource Hint}" Margin="0,14,0,0"/>
+</StackPanel>
+<Border Background="#F8FBFC" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="24,14">
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
+<ui:Button Content="Volver (Esc)" IsCancel="True" HorizontalAlignment="Stretch" MinHeight="48" Click="CancelClick"/>
+<ui:Button x:Name="ConfirmButton" Grid.Column="2" Content="Confirmar cobro (Enter)" Appearance="Primary" IsDefault="True" HorizontalAlignment="Stretch" MinHeight="48" FontSize="15" FontWeight="Bold" Click="ConfirmClick"/>
+</Grid>
+</Border>
+</StackPanel>
+</ui:FluentWindow>

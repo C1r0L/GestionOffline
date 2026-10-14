@@ -1,6 +1,6 @@
 # MiPOS — Gestión offline
 
-MVP de escritorio en español para Windows x64. C# / .NET 10 LTS, WPF con MVVM, SQLite y Dapper. No requiere internet para funcionar, cuentas ni servicios externos.
+MVP de escritorio en español para Windows x64. C# / .NET 10 LTS, WPF con MVVM, [WPF UI](https://github.com/lepoco/wpfui) (estilo Fluent de Windows 11), SQLite y Dapper. No requiere internet para funcionar, cuentas ni servicios externos.
 
 ## Desarrollo
 
@@ -13,7 +13,7 @@ dotnet test POS.Tests/POS.Tests.csproj -c Release --no-restore
 dotnet run --project POS.Desktop
 ```
 
-WPF se ejecuta en Windows. En Linux se puede compilar gracias a `EnableWindowsTargeting` y ejecutar las pruebas de lógica, persistencia y transacciones; no se puede ejecutar la interfaz.
+WPF se ejecuta en Windows. En Linux se puede compilar gracias a `EnableWindowsTargeting` y ejecutar las pruebas de lógica, persistencia y transacciones. Para revisar la interfaz sin Windows se puede publicar para `win-x64` con `--self-contained` y abrir `POS.Desktop.exe` con Wine; sirve para ver pantallas, pero las fuentes difieren y no reemplaza la [validación en Windows](docs/windows-validation.md).
 
 En el entorno cloud preparado:
 
@@ -31,16 +31,36 @@ Cada tarea cloud está aislada: usar el checkout existente, sin crear worktrees.
 
 - `POS.Core`: modelos, interfaces, precisión monetaria y cantidades.
 - `POS.Infrastructure`: SQLite, migración versionada, operaciones atómicas, auditoría y backups.
-- `POS.Desktop`: vistas WPF, ViewModels y comandos; delega las operaciones a servicios.
+- `POS.Desktop`: interfaz WPF; delega las operaciones a servicios.
+  - `Theme/MiPos.xaml`: paleta, gradientes y estilos propios sobre WPF UI.
+  - `Views/`: una vista por sección (venta, productos, inventario, historial, cierre).
+  - `ViewModels*.cs`: `MainViewModel` dividido por sección (clase parcial).
+  - Diálogos: producto, cantidad, cobro, confirmación y vista previa de impresión.
 - `POS.Tests`: pruebas de aceptación que usan bases reales aisladas.
 
 ## Uso
 
-1. En **Productos**, crear productos y elegir la unidad de venta y el control de stock.
-2. En **Inventario**, reponer existencias o establecer un valor absoluto con motivo. En stock manual, elegir SUFICIENTE, BAJO o REPONER. El mínimo opcional permite señalar reposición en stock medible.
-3. En **Nueva venta**, buscar un producto, ingresar cantidad y agregarlo al carrito. Seleccionar una línea para cambiar su cantidad o quitarla. Revisar el total y confirmar el cobro.
-4. En **Historial**, filtrar fechas y consultar el detalle. La anulación requiere motivo y confirmación, conserva la venta y devuelve stock una única vez.
-5. Exportar respaldos a una unidad externa. Restaurar requiere confirmación y conserva una copia previa de los datos actuales.
+La navegación es un menú lateral. Debajo están el estado del respaldo diario y el acceso a exportar o restaurar respaldos.
+
+1. **Nueva venta** (pantalla inicial). Buscar por nombre o escanear el código: Enter agrega el código exacto o el primer resultado. También se puede tocar la tarjeta del producto; los productos por kilo piden el peso. En el carrito, −/+ cambian la cantidad (una unidad o 100 g), la cantidad se toca para editarla y el tacho quita la línea. Elegir el medio de pago y cobrar: en efectivo se calcula el vuelto, que no se guarda.
+2. **Productos**. Crear y editar con un diálogo que solo permite combinaciones válidas de unidad y control de stock, muestra el margen sobre el costo y marca errores por campo. "Ajustar precios" abre un panel con vista previa automática por categoría, porcentaje o monto fijo y redondeo.
+3. **Inventario**. Resumen por estado, filtros y un panel por producto para reponer o fijar existencias con motivo, definir el mínimo y ver movimientos. Los productos manuales se marcan como Suficiente, Bajo o Reponer.
+4. **Historial**. Períodos rápidos o fechas a elección, totales del período y detalle con precios históricos. La anulación exige motivo y confirmación, conserva la venta y devuelve el stock una única vez.
+5. **Cierre del día**. Totales del día, cobros por medio de pago, productos vendidos y control de efectivo (el conteo no se guarda). "Imprimir resumen" muestra una vista previa y usa el diálogo de impresión de Windows; con "Microsoft Print to PDF" se obtiene un PDF.
+6. **Respaldos**. Exportar a una unidad externa. Restaurar requiere confirmación y conserva una copia previa de los datos actuales.
+
+### Atajos de teclado
+
+| Tecla | Acción |
+| --- | --- |
+| F1 / F2 | Nueva venta / ir a la búsqueda |
+| F3, F4, F5, F6 | Productos, Inventario, Historial, Cierre del día |
+| Enter (en la búsqueda) | Agregar el producto |
+| Esc (en la búsqueda) | Limpiar la búsqueda |
+| ↓ (en la búsqueda) | Pasar al carrito |
+| + / − / Supr (en el carrito) | Cambiar cantidad o quitar la línea |
+| F12 | Cobrar |
+| Ctrl+N (en Productos) | Nuevo producto |
 
 ### Precio y cantidades
 
@@ -72,10 +92,10 @@ En Windows, instalar [Inno Setup 6](https://jrsoftware.org/isinfo.php) en su ubi
 ./packaging/build.ps1
 ```
 
-Genera `artifacts/installer/MiPOS-Setup-x64.exe`. También hay un workflow de GitHub Actions para compilar, probar y empaquetar en Windows. No se ha enviado ni ejecutado ese workflow desde este entorno. El instalador inicial no tiene firma de código.
+Genera `artifacts/installer/MiPOS-Setup-x64.exe`. También hay un workflow de GitHub Actions para compilar, probar y empaquetar en Windows. No se ha enviado ni ejecutado ese workflow desde este entorno. El instalador no tiene firma de código. Incluye `THIRD-PARTY-NOTICES.txt` con la licencia de WPF UI.
 
 Validación manual requerida antes de distribuir: [checklist Windows](docs/windows-validation.md).
 
 ## Alcance
 
-No incluye control de caja, descuentos, impresión, devoluciones parciales, CSV, facturación fiscal, multiusuario ni sincronización. La anulación completa sí está incluida. Los criterios originales y decisiones aceptadas se encuentran en `docs/specs.md` y `docs/decisions.md`.
+No incluye control formal de caja (apertura o arqueo guardado), descuentos, impresión de tickets, devoluciones parciales, CSV, facturación fiscal, multiusuario ni sincronización. Sí incluye la anulación completa, el cierre del día informativo y la impresión de su resumen en una impresora común. Los criterios originales y decisiones aceptadas se encuentran en `docs/specs.md` y `docs/decisions.md`.

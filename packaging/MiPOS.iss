@@ -1,4 +1,4 @@
-#define AppVersion "0.1.0"
+#define AppVersion "0.2.0"
 [Setup]
 AppId={{A72FB117-41E8-41EB-8E9E-1068AF445837}
 AppName=MiPOS
@@ -22,6 +22,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; Flags: unchecked
 [Files]
 Source: "..\artifacts\windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 Name: "{group}\MiPOS"; Filename: "{app}\POS.Desktop.exe"
 Name: "{userdesktop}\MiPOS"; Filename: "{app}\POS.Desktop.exe"; Tasks: desktopicon

@@ -15,4 +15,19 @@ Estas comprobaciones requieren Windows y aún no se ejecutaron en el entorno clo
 11. Recorrer con teclado, verificar foco inicial, tabulación, lector de pantalla y legibilidad con escala de pantalla de 125% y 150%.
 12. Cerrar y abrir sin internet; confirmar datos persistidos. Desinstalar y verificar que los datos permanecen en LocalAppData.
 
+## Interfaz rediseñada (WPF UI)
+
+Las pantallas se revisaron con Wine en Linux, que no reproduce fielmente fuentes, sombras, foco de ventanas ni impresión. Verificar en Windows 10 y Windows 11:
+
+13. Aspecto general: menú lateral con gradiente, barra de título propia (minimizar, maximizar, cerrar y arrastre), fuentes Segoe UI, sin cuadrados en lugar de caracteres. Menús y tooltips sin bordes negros.
+14. Atajos: F1 a F6 cambian de sección; F2 enfoca la búsqueda; F12 cobra; en el carrito, +, − y Suprimir; Ctrl+N en Productos.
+15. Lector de códigos de barras tipo teclado: escanear seguido varios productos sin tocar el mouse; cada lectura agrega el producto y el foco vuelve a la búsqueda.
+16. Producto por kilo: tocar la tarjeta, ingresar 0,5 y confirmar con Enter; el foco vuelve a la búsqueda y un Enter vacío no agrega nada.
+17. Cobro en efectivo: con "Paga con" menor al total el botón queda deshabilitado; con monto mayor se muestra el vuelto y el mensaje final lo repite. Con transferencia o tarjeta no se pide monto.
+18. Diálogos (confirmación, cantidad, cobro, producto): se abren centrados, con el alto justo, sin cortar botones al aparecer errores, y en acciones destructivas el foco inicial está en Cancelar.
+19. Productos: el panel "Ajustar precios" no tapa información necesaria a 1040×680; al aplicar se cierra y no vuelve a aplicar el mismo ajuste.
+20. Inventario e Historial: la selección se mantiene después de reponer, fijar existencias o anular.
+21. Cierre del día: los totales coinciden con el Historial del mismo día; imprimir en una impresora real y en "Microsoft Print to PDF", y revisar que el documento entre en una página A4 o carta con los datos completos.
+22. Escala de pantalla 100%, 125% y 150% y ventana mínima (1040×680): sin textos cortados ni barras de desplazamiento horizontales en las tablas.
+
 Registrar versión de Windows, artefacto, fecha, resultados y cualquier defecto encontrado. La compilación desde Linux no sustituye estos pasos.
